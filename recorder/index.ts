@@ -27,6 +27,18 @@ async function fetchEndpoint(path: string): Promise<{ body: string; status: numb
   return { body, status: res.status, credits };
 }
 
+function appErrorCode(body: string): string | null {
+  try {
+    const json = JSON.parse(body);
+    const code = json?.status?.error_code;
+    // CMC uses "0" for success, non-zero string or number for errors
+    if (code !== undefined && code !== 0 && code !== '0') return String(code);
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function extractCoins(endpoint: string, body: string): CmcCoin[] {
   try {
     const json = JSON.parse(body);
@@ -74,8 +86,9 @@ async function run() {
       status_code: status,
     });
 
-    if (status !== 200) {
-      console.warn(`[wick] ${key} returned ${status} — stored, skipping appearances`);
+    const appErr = appErrorCode(body);
+    if (status !== 200 || appErr) {
+      console.warn(`[wick] ${key} returned HTTP ${status}${appErr ? ` / app error ${appErr}` : ''} — stored, skipping appearances`);
       continue;
     }
 
