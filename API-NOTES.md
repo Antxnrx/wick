@@ -69,5 +69,34 @@ The gainers endpoint wraps in `data.gainers`, the others return `data` directly.
 
 ---
 
+## 4. Trending endpoint plan restriction
+
+**Endpoints affected:** all three `/v3/cryptocurrency/trending/*` endpoints
+
+**Reproduced:** consistently across every run (Nov 24–25 2026)
+
+The hackathon key has 450,000 monthly credits and no explicit tier field in
+`/v1/key/info`. All three trending endpoints return error_code "500" (system busy)
+with `credit_count: 0` on every request — even after retry. The Fear & Greed
+endpoint (`/v3/fear-and-greed/latest`) works fine on the same key.
+
+Zero credit consumption is the definitive indicator: CMC charges credits for
+processed requests (even failed ones), but charges nothing when access is denied
+before processing.
+
+**Pivot:** Switched to `/v1/cryptocurrency/listings/latest` with different sort
+parameters, which is accessible on all plans:
+
+| Old endpoint | New endpoint | Sort param |
+|---|---|---|
+| `/v3/trending/gainers-losers` | `/v1/cryptocurrency/listings/latest` | `percent_change_24h DESC` |
+| `/v3/trending/most-visited` | `/v1/cryptocurrency/listings/latest` | `volume_24h DESC` |
+| `/v3/trending/latest` | `/v1/cryptocurrency/listings/latest` | `percent_change_1h DESC` |
+
+DB schema is unchanged — endpoint names `gainers`, `most_visited`, `trending`
+are preserved. The analysis and web UI are unaffected.
+
+---
+
 *Add observations here as they accumulate. Each entry should include endpoint,
 reproduction timestamp, raw JSON snippet, and how we handle it.*
