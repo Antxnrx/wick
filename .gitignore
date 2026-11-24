@@ -4,5 +4,8 @@ node_modules/
 .next/
 dist/
 *.js.map
+# SQLite WAL journal files are transient — only commit the .db itself
+*.db-shm
+*.db-wal
 # keep data/wick.db committed — the git history IS the audit trail
 # keep fixtures/ committed — needed for offline replay
