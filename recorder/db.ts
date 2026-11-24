@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const DB_PATH = join(process.cwd(), 'data', 'wick.db');
+const DB_PATH = process.env.WICK_DB_PATH ?? join(process.cwd(), 'data', 'wick.db');
 const SCHEMA_PATH = join(process.cwd(), 'recorder', 'schema.sql');
 
 let _db: DatabaseSync | null = null;

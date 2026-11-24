@@ -4,8 +4,12 @@
   "private": true,
   "scripts": {
     "record": "tsx recorder/index.ts",
+    "outcomes": "tsx analysis/run-outcomes.ts",
+    "receipts": "tsx analysis/run-receipts.ts",
     "replay": "tsx analysis/replay.ts",
-    "dev": "cd web && next dev"
+    "snapshot-fixtures": "cp data/wick.db fixtures/sample.db",
+    "dev": "cd web && next dev",
+    "build": "cd web && next build"
   },
   "dependencies": {},
   "devDependencies": {
