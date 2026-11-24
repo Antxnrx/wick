@@ -8,6 +8,23 @@ if (!KEY) {
   process.exit(1);
 }
 
+async function checkKeyPlan(): Promise<void> {
+  try {
+    const res = await fetch(`${BASE}/v1/key/info`, {
+      headers: { 'X-CMC_PRO_API_KEY': KEY, Accept: 'application/json' },
+    });
+    const json = await res.json() as Record<string, unknown>;
+    const data = json.data as Record<string, unknown> | undefined;
+    if (data) {
+      const plan = (data.plan as Record<string, unknown> | undefined)?.credit_limit_monthly;
+      const tier = (data.plan as Record<string, unknown> | undefined)?.tier;
+      console.log(`[wick] key plan: tier=${tier ?? 'unknown'} monthly_credits=${plan ?? 'unknown'}`);
+    }
+  } catch {
+    console.warn('[wick] key/info check failed — continuing anyway');
+  }
+}
+
 interface CmcCoin {
   id: number;
   name: string;
@@ -15,7 +32,7 @@ interface CmcCoin {
   quote?: { USD?: { price?: number; volume_24h?: number; percent_change_1h?: number; percent_change_24h?: number } };
 }
 
-async function fetchEndpoint(path: string): Promise<{ body: string; status: number; credits: number | null }> {
+async function fetchEndpoint(path: string, retry = 1): Promise<{ body: string; status: number; credits: number | null }> {
   const url = `${BASE}${path}`;
   const res = await fetch(url, {
     headers: { 'X-CMC_PRO_API_KEY': KEY, Accept: 'application/json' },
@@ -24,19 +41,28 @@ async function fetchEndpoint(path: string): Promise<{ body: string; status: numb
   const credits = res.headers.get('X-CMC_PRO_CREDITS_LEFT')
     ? Number(res.headers.get('X-CMC_PRO_CREDITS_LEFT'))
     : null;
+
+  // Retry once on CMC's transient 500 "system busy" if retries remain
+  if (retry > 0 && appErrorCodeRaw(body) === '500') {
+    console.warn(`[wick] ${path} returned app-500, retrying in 10s…`);
+    await new Promise(r => setTimeout(r, 10_000));
+    return fetchEndpoint(path, retry - 1);
+  }
+
   return { body, status: res.status, credits };
 }
 
-function appErrorCode(body: string): string | null {
+function appErrorCodeRaw(body: string): string | null {
   try {
     const json = JSON.parse(body);
     const code = json?.status?.error_code;
-    // CMC uses "0" for success, non-zero string or number for errors
     if (code !== undefined && code !== 0 && code !== '0') return String(code);
     return null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
+}
+
+function appErrorCode(body: string): string | null {
+  return appErrorCodeRaw(body);
 }
 
 function extractCoins(endpoint: string, body: string): CmcCoin[] {
@@ -65,6 +91,8 @@ async function fetchFearAndGreed(): Promise<number | null> {
 async function run() {
   const capturedAt = new Date().toISOString();
   console.log(`[wick] snapshot at ${capturedAt}`);
+
+  await checkKeyPlan();
 
   const fearGreed = await fetchFearAndGreed();
   console.log(`[wick] fear & greed: ${fearGreed ?? 'unavailable'}`);
