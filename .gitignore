@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.local
+.next/
+dist/
+*.js.map
+# keep data/wick.db committed — the git history IS the audit trail
+# keep fixtures/ committed — needed for offline replay
