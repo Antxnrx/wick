@@ -16,9 +16,8 @@ async function checkKeyPlan(): Promise<void> {
     const json = await res.json() as Record<string, unknown>;
     const data = json.data as Record<string, unknown> | undefined;
     if (data) {
-      const plan = (data.plan as Record<string, unknown> | undefined)?.credit_limit_monthly;
-      const tier = (data.plan as Record<string, unknown> | undefined)?.tier;
-      console.log(`[wick] key plan: tier=${tier ?? 'unknown'} monthly_credits=${plan ?? 'unknown'}`);
+      // Log full plan object so we can see the actual field names
+      console.log('[wick] key/info data:', JSON.stringify(data));
     }
   } catch {
     console.warn('[wick] key/info check failed — continuing anyway');
