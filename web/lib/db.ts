@@ -182,10 +182,11 @@ export function getSnapshotHistory(): Array<{ captured_at: string; total_coins: 
     SELECT s.captured_at,
            COUNT(DISTINCT a.cmc_id) as total_coins,
            AVG(a.fear_greed) as fear_greed
-    FROM snapshots s
-    JOIN appearances a ON a.snapshot_id = s.id
+    FROM (SELECT DISTINCT captured_at FROM snapshots ORDER BY captured_at DESC LIMIT 48) s
+    LEFT JOIN appearances a ON a.snapshot_id IN (
+      SELECT id FROM snapshots WHERE captured_at = s.captured_at
+    )
     GROUP BY s.captured_at
     ORDER BY s.captured_at DESC
-    LIMIT 48
   `));
 }

@@ -44,13 +44,25 @@ function Column({ cohort, coins }: { cohort: Cohort; coins: CoinEntry[] }) {
   );
 }
 
-function EmptyState() {
+function EmptyState({ hasSnapshots }: { hasSnapshots: boolean }) {
   return (
     <div className="border border-dashed border-border rounded p-12 text-center">
-      <div className="text-[#64748b] text-sm">no snapshots recorded yet</div>
-      <div className="text-[#64748b] text-xs mt-2">
-        run <code className="bg-panel px-1 py-0.5 rounded">npm run record</code> or trigger the GitHub Actions cron
-      </div>
+      {hasSnapshots ? (
+        <>
+          <div className="text-[#64748b] text-sm">snapshot recorded — CMC returned no coin data</div>
+          <div className="text-[#64748b] text-xs mt-2">
+            CMC occasionally returns <code className="bg-panel px-1 py-0.5 rounded">error_code 500</code> with HTTP 200.
+            waiting for the next 6h window.
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="text-[#64748b] text-sm">no snapshots recorded yet</div>
+          <div className="text-[#64748b] text-xs mt-2">
+            run <code className="bg-panel px-1 py-0.5 rounded">npm run record</code> or trigger the GitHub Actions cron
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -95,7 +107,7 @@ export default function Home() {
       </div>
 
       {!hasData ? (
-        <EmptyState />
+        <EmptyState hasSnapshots={!!snap?.captured_at} />
       ) : (
         <div className="grid grid-cols-4 gap-4">
           {COLUMN_ORDER.map(cohort => (

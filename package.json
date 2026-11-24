@@ -8,8 +8,8 @@
     "receipts": "tsx analysis/run-receipts.ts",
     "replay": "tsx analysis/replay.ts",
     "snapshot-fixtures": "cp data/wick.db fixtures/sample.db",
-    "dev": "cd web && next dev",
-    "build": "cd web && next build"
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build"
   },
   "dependencies": {},
   "devDependencies": {
