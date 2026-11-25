@@ -204,34 +204,52 @@ export default function Dashboard() {
         )}
       </div>
 
-      {hasStats && (
-        <div className="bg-panel border border-border rounded p-5">
-          <div className="text-xs text-[#64748b] mb-3 uppercase tracking-wider">the finding</div>
-          <div className="space-y-1 text-sm">
-            {(() => {
-              const signal = stats.find(s => s.cohort === 'both');
-              const noise = stats.find(s => s.cohort === 'gainers_only');
-              if (!signal || !noise || signal.median_T7d == null || noise.median_T7d == null) return null;
+      <div className="bg-panel border border-border rounded p-5">
+        <div className="text-xs text-[#64748b] mb-3 uppercase tracking-wider">the finding</div>
+        <div className="space-y-3 text-xs">
+          {(() => {
+            const signal = stats.find(s => s.cohort === 'both');
+            const noise = stats.find(s => s.cohort === 'gainers_only');
+            const dataWindows = history.filter(h => h.total_coins > 0);
+            const zeroSignal = dataWindows.filter(h => (h.signal ?? 0) === 0).length;
+
+            if (signal && noise && signal.median_T7d != null && noise.median_T7d != null) {
               const diff = signal.median_T7d - noise.median_T7d;
               return (
-                <p className="text-[#e6edf3] text-xs leading-relaxed">
+                <p className="text-[#e6edf3] leading-relaxed">
                   Coins in <span className="text-signal font-bold">signal</span> (both Gainers + Most-Visited) show{' '}
-                  <span className={signal.median_T7d >= 0 ? 'text-signal' : 'text-noise'}>
-                    {fmt(signal.median_T7d)}
-                  </span>{' '}
+                  <span className={signal.median_T7d >= 0 ? 'text-signal' : 'text-noise'}>{fmt(signal.median_T7d)}</span>{' '}
                   median T7d vs{' '}
-                  <span className={noise.median_T7d >= 0 ? 'text-signal' : 'text-noise'}>
-                    {fmt(noise.median_T7d)}
-                  </span>{' '}
-                  for <span className="text-noise font-bold">noise</span> (Gainers only) —
+                  <span className={noise.median_T7d >= 0 ? 'text-signal' : 'text-noise'}>{fmt(noise.median_T7d)}</span>{' '}
+                  for <span className="text-noise font-bold">noise</span> —
                   a <span className="font-bold">{Math.abs(diff).toFixed(1)}pp gap</span>.{' '}
-                  CMC&apos;s two trending systems disagree for a reason.
+                  CMC&apos;s two systems disagree for a reason.
                 </p>
               );
-            })()}
-          </div>
+            }
+
+            return (
+              <>
+                <p className="text-[#e6edf3] leading-relaxed">
+                  <span className="text-noise font-bold">Structural:</span>{' '}
+                  CMC&apos;s gainers (top by pct_change_24h) and most-visited (top by volume_24h) are
+                  completely disjoint — {zeroSignal > 0 ? `0 signal coins in all ${zeroSignal} data windows` : 'no overlap detected'}.
+                  Price pumps in the top gainers have zero volume backing from the same system.
+                </p>
+                <p className="text-[#64748b] leading-relaxed">
+                  Outcome data: T+24h fills from {earliestWindow
+                    ? new Date(new Date(earliestWindow).getTime() + 24 * 3600 * 1000).toISOString().slice(0, 10)
+                    : 'day 2'}.
+                  T+7d fills from {earliestWindow
+                    ? new Date(new Date(earliestWindow).getTime() + 7 * 24 * 3600 * 1000).toISOString().slice(0, 10)
+                    : 'day 8'}.
+                  The survival table above will populate automatically.
+                </p>
+              </>
+            );
+          })()}
         </div>
-      )}
+      </div>
 
       <div className="bg-panel border border-border rounded p-5">
         <div className="text-xs text-[#64748b] mb-3 uppercase tracking-wider">
