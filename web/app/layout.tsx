@@ -26,15 +26,26 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[#0f1117] text-[#e6edf3]">
+      <body className="min-h-screen bg-[#0f1117] text-[#e6edf3] flex flex-col">
         <header className="border-b border-[#21262d] px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <span className="text-lg font-bold tracking-tight">wick</span>
             <span className="text-[#64748b] text-xs">CMC trending audit</span>
-          </div>
+          </a>
           <NavLinks />
         </header>
-        <main className="px-6 py-8 max-w-6xl mx-auto">{children}</main>
+        <main className="px-6 py-8 max-w-6xl mx-auto w-full flex-1">{children}</main>
+        <footer className="border-t border-[#21262d] px-6 py-3 text-[11px] text-[#64748b] flex items-center justify-between mt-auto">
+          <span>wick · build with cmc api hackathon 2026 · data &amp; visualisation</span>
+          <div className="flex items-center gap-4">
+            <a href="https://github.com/Antxnrx/wick" target="_blank" rel="noopener noreferrer"
+              className="hover:text-[#e6edf3] transition-colors">github</a>
+            <a href="https://dorahacks.io/hackathon/coinmarketcap-build-hackathon/detail" target="_blank" rel="noopener noreferrer"
+              className="hover:text-[#e6edf3] transition-colors">dorahacks</a>
+            <a href="https://x.com/whereizanton" target="_blank" rel="noopener noreferrer"
+              className="hover:text-[#e6edf3] transition-colors">@whereizanton</a>
+          </div>
+        </footer>
       </body>
     </html>
   );

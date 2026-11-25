@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { getLatestSnapshot, getSnapshotHistory, type Cohort, type CoinEntry } from '../../lib/db';
 import { CoinCard } from '../../components/CoinCard';
+
+export const metadata: Metadata = {
+  title: 'Live',
+  description: 'Real-time CMC trending coin classification — signal, noise, organic, and trending cohorts from the latest snapshot.',
+};
 
 const COLUMN_META: Record<Cohort, { label: string; desc: string; color: string }> = {
   both: {

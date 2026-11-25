@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import { getCohortStats, getSnapshotHistory, type Cohort, type CohortStats, type HistoryRow } from '../../lib/db';
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description: 'Cohort survival analysis — does the signal/noise split predict 24h and 7d returns? T+24h and T+7d median outcomes by cohort.',
+};
 
 const LABEL: Record<Cohort, string> = {
   both: 'signal',

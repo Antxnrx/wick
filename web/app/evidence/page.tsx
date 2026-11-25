@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import { getEvidence } from '../../lib/db';
+
+export const metadata: Metadata = {
+  title: 'Evidence',
+  description: 'Every appearance has a dated receipt — exact CMC API call, entry price, and retroactive T+24h/T+7d outcome price. No model produces a number.',
+};
 
 const SUP: Record<string, string> = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻' };
 function sup(n: number) { return String(n).split('').map(c => SUP[c] ?? c).join(''); }
