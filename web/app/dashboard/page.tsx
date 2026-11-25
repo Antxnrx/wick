@@ -134,7 +134,7 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {!hasStats && totalAppearances > 0 && (
+      {!hasT24h && totalAppearances > 0 && (
         <div className="border border-[#21262d] rounded px-4 py-3 text-[11px] text-[#64748b] flex items-start gap-3">
           <span className="text-yellow-500 font-bold uppercase tracking-wider mt-0.5">collecting</span>
           <span className="leading-relaxed">

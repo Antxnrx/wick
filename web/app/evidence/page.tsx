@@ -1,5 +1,13 @@
 import { getEvidence } from '../../lib/db';
 
+function fmtPrice(n: number | null): string {
+  if (n == null) return '—';
+  if (n >= 1000) return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (n >= 1) return '$' + n.toFixed(2);
+  if (n >= 0.001) return '$' + n.toFixed(4);
+  return '$' + n.toExponential(2);
+}
+
 function fmtPct(n: number | null) {
   if (n == null) return <span className="text-[#64748b]">—</span>;
   return <span className={n >= 0 ? 'text-signal' : 'text-noise'}>{n >= 0 ? '+' : ''}{n.toFixed(2)}%</span>;
@@ -39,9 +47,7 @@ export default function Evidence() {
                     {r.captured_at.slice(0, 16).replace('T', ' ')}
                   </td>
                   <td className="px-3 py-1.5 text-[#64748b]">{r.endpoint}</td>
-                  <td className="px-3 py-1.5 text-[#e6edf3]">
-                    {r.price_usd != null ? '$' + r.price_usd.toPrecision(4) : '—'}
-                  </td>
+                  <td className="px-3 py-1.5 text-[#e6edf3]">{fmtPrice(r.price_usd)}</td>
                   <td className="px-3 py-1.5">{fmtPct(r.pct_change_24h)}</td>
                   <td className="px-3 py-1.5 text-[#64748b]">{r.horizon ?? '—'}</td>
                   <td className="px-3 py-1.5">{fmtPct(r.outcome_pct)}</td>
