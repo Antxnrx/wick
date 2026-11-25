@@ -1,4 +1,4 @@
-import { getLatestSnapshot, type Cohort, type CoinEntry } from '../lib/db';
+import { getLatestSnapshot, getSnapshotHistory, type Cohort, type CoinEntry } from '../lib/db';
 import { CoinCard } from '../components/CoinCard';
 
 const COLUMN_META: Record<Cohort, { label: string; desc: string; color: string }> = {
@@ -82,7 +82,11 @@ function EmptyState({ hasSnapshots }: { hasSnapshots: boolean }) {
 
 export default function Home() {
   const snap = getLatestSnapshot();
+  const history = getSnapshotHistory();
   const hasData = snap && snap.coins.length > 0;
+
+  const dataWindows = history.filter(h => h.total_coins > 0);
+  const zeroSignalWindows = dataWindows.filter(h => (h.signal ?? 0) === 0).length;
 
   const capturedAt = snap?.captured_at
     ? new Date(snap.captured_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
@@ -134,7 +138,7 @@ export default function Home() {
             </span>
             <span className="text-[#64748b] leading-relaxed">
               {isDisjoint
-                ? `gainers and most-visited are completely disjoint this window — 0 of ${totalN} coins appear in both. every gainer lacks organic search confirmation.`
+                ? `gainers and most-visited are completely disjoint — 0 of ${totalN} coins overlap. ${zeroSignalWindows > 1 ? `consistent across all ${zeroSignalWindows} recorded windows.` : ''} every gainer this window lacks organic search confirmation.`
                 : `${signalN} of ${totalN} coins (${overlapPct}%) appear in both gainers and most-visited — price move backed by organic interest.`}
             </span>
           </div>
