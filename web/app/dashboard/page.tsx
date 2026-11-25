@@ -88,10 +88,15 @@ export default function Dashboard() {
   const stats = getCohortStats();
   const history = getSnapshotHistory();
   const hasStats = stats.some(s => s.count > 0);
+  const hasT24h = stats.some(s => s.median_T24h != null);
+  const hasT7d  = stats.some(s => s.median_T7d != null);
 
   const maxAbsT7d = stats.reduce((m, s) =>
     s.median_T7d != null ? Math.max(m, Math.abs(s.median_T7d)) : m, 1
   );
+
+  const totalAppearances = stats.reduce((sum, s) => sum + s.count, 0);
+  const earliestWindow = history.length > 0 ? history[history.length - 1]?.captured_at : null;
 
   return (
     <div className="flex flex-col gap-10">
@@ -101,6 +106,29 @@ export default function Dashboard() {
           outcome by classification — does the signal/noise split predict 24h and 7d returns?
         </p>
       </div>
+
+      {!hasStats && totalAppearances > 0 && (
+        <div className="border border-[#21262d] rounded px-4 py-3 text-[11px] text-[#64748b] flex items-start gap-3">
+          <span className="text-yellow-500 font-bold uppercase tracking-wider mt-0.5">collecting</span>
+          <span className="leading-relaxed">
+            {totalAppearances} appearances recorded across {history.filter(h => h.total_coins > 0).length} windows.{' '}
+            T+24h outcomes available ~24h after first snapshot{earliestWindow ? ` (from ${earliestWindow.slice(0, 16).replace('T', ' ')} UTC)` : ''}.{' '}
+            T+7d outcomes available 7 days after first snapshot.
+            Numbers fill in automatically — check back after{' '}
+            {earliestWindow ? new Date(new Date(earliestWindow).getTime() + 24 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : '24h'}.
+          </span>
+        </div>
+      )}
+
+      {hasT24h && !hasT7d && (
+        <div className="border border-[#21262d] rounded px-4 py-3 text-[11px] text-[#64748b] flex items-start gap-3">
+          <span className="text-signal font-bold uppercase tracking-wider mt-0.5">t24h ready</span>
+          <span className="leading-relaxed">
+            24h outcomes are live. T+7d outcomes will be available{' '}
+            {earliestWindow ? new Date(new Date(earliestWindow).getTime() + 7 * 24 * 3600 * 1000).toISOString().slice(0, 10) : 'in 7 days'}.
+          </span>
+        </div>
+      )}
 
       <div className="bg-panel border border-border rounded p-5">
         <div className="text-xs text-[#64748b] mb-3 uppercase tracking-wider">methodology</div>

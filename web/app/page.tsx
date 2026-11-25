@@ -122,6 +122,25 @@ export default function Home() {
         </div>
       </div>
 
+      {hasData && (() => {
+        const signalN = coinsByColumn.both.length;
+        const totalN = snap!.coins.length;
+        const overlapPct = totalN > 0 ? (signalN / totalN * 100).toFixed(0) : '0';
+        const isDisjoint = signalN === 0;
+        return (
+          <div className={`border rounded px-4 py-3 text-xs flex items-start gap-3 ${isDisjoint ? 'border-noise/30 bg-noise/5' : 'border-signal/30 bg-signal/5'}`}>
+            <span className={`font-bold uppercase tracking-wider text-[11px] mt-0.5 ${isDisjoint ? 'text-noise' : 'text-signal'}`}>
+              {isDisjoint ? 'max noise' : 'signal detected'}
+            </span>
+            <span className="text-[#64748b] leading-relaxed">
+              {isDisjoint
+                ? `gainers and most-visited are completely disjoint this window — 0 of ${totalN} coins appear in both. every gainer lacks organic search confirmation.`
+                : `${signalN} of ${totalN} coins (${overlapPct}%) appear in both gainers and most-visited — price move backed by organic interest.`}
+            </span>
+          </div>
+        );
+      })()}
+
       {!hasData ? (
         <EmptyState hasSnapshots={!!snap?.captured_at} />
       ) : (
