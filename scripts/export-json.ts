@@ -111,14 +111,37 @@ const stats = (['gainers_only', 'both', 'most_visited_only', 'trending_only'] as
 writeFileSync(join(OUT_DIR, 'stats.json'), JSON.stringify(stats));
 console.log('[export] stats.json');
 
-// --- history ---
-type HistRow = { captured_at: string; total_coins: number; fear_greed: number | null };
-const history = q<HistRow>(db.prepare(`
+// --- history (with per-window cohort counts) ---
+type RawHistRow = { captured_at: string; total_coins: number; fear_greed: number | null };
+const rawHistory = q<RawHistRow>(db.prepare(`
   SELECT s.captured_at, COUNT(DISTINCT a.cmc_id) as total_coins, AVG(a.fear_greed) as fear_greed
   FROM (SELECT DISTINCT captured_at FROM snapshots ORDER BY captured_at DESC LIMIT 48) s
   LEFT JOIN appearances a ON a.snapshot_id IN (SELECT id FROM snapshots WHERE captured_at = s.captured_at)
   GROUP BY s.captured_at ORDER BY s.captured_at DESC
 `));
+
+// Compute per-window cohort breakdown
+type WindowCohortsRow = { cmc_id: number; endpoint: string };
+const history = rawHistory.map(row => {
+  if (row.total_coins === 0) return { ...row, signal: 0, noise: 0, organic: 0, trending: 0 };
+  const apps = q<WindowCohortsRow>(db.prepare(`
+    SELECT a.cmc_id, a.endpoint FROM appearances a
+    JOIN snapshots s ON s.id = a.snapshot_id WHERE s.captured_at = ?
+  `), row.captured_at);
+  const gIds = new Set(apps.filter(a => a.endpoint === 'gainers').map(a => a.cmc_id));
+  const mvIds = new Set(apps.filter(a => a.endpoint === 'most_visited').map(a => a.cmc_id));
+  const allIds = new Set(apps.map(a => a.cmc_id));
+  let signal = 0, noise = 0, organic = 0, trending = 0;
+  for (const id of allIds) {
+    const inG = gIds.has(id), inMV = mvIds.has(id);
+    if (inG && inMV) signal++;
+    else if (inG) noise++;
+    else if (inMV) organic++;
+    else trending++;
+  }
+  return { ...row, signal, noise, organic, trending };
+});
+
 writeFileSync(join(OUT_DIR, 'history.json'), JSON.stringify(history));
 console.log(`[export] history.json: ${history.length} windows`);
 

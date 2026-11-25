@@ -1,4 +1,4 @@
-import { getCohortStats, getSnapshotHistory, type Cohort, type CohortStats } from '../../lib/db';
+import { getCohortStats, getSnapshotHistory, type Cohort, type CohortStats, type HistoryRow } from '../../lib/db';
 
 const LABEL: Record<Cohort, string> = {
   both: 'signal',
@@ -68,7 +68,31 @@ function StatRow({ stat, maxAbsT7d }: { stat: CohortStats; maxAbsT7d: number }) 
   );
 }
 
-function HistoryRow({ row }: { row: { captured_at: string; total_coins: number; fear_greed: number | null } }) {
+function CohortBar({ row }: { row: HistoryRow }) {
+  if (row.total_coins === 0) return <span className="text-[#64748b]">—</span>;
+  const signal = row.signal ?? 0;
+  const noise = row.noise ?? 0;
+  const organic = row.organic ?? 0;
+  const trending = row.trending ?? 0;
+  const total = signal + noise + organic + trending;
+  if (total === 0) return <span className="text-[#64748b]">—</span>;
+  const pct = (n: number) => `${(n / total * 100).toFixed(0)}%`;
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex h-1.5 w-28 rounded overflow-hidden gap-px bg-border">
+        {signal > 0 && <div className="bg-signal h-full" style={{ width: pct(signal) }} title={`signal: ${signal}`} />}
+        {noise > 0 && <div className="bg-noise h-full" style={{ width: pct(noise) }} title={`noise: ${noise}`} />}
+        {organic > 0 && <div className="bg-organic h-full" style={{ width: pct(organic) }} title={`organic: ${organic}`} />}
+        {trending > 0 && <div className="bg-[#64748b] h-full" style={{ width: pct(trending) }} title={`trending: ${trending}`} />}
+      </div>
+      {signal > 0
+        ? <span className="text-signal">{signal} sig</span>
+        : <span className="text-noise/60 text-[10px]">0 sig</span>}
+    </div>
+  );
+}
+
+function HistoryRow({ row }: { row: HistoryRow }) {
   const dt = new Date(row.captured_at);
   const isValid = !isNaN(dt.getTime());
   return (
@@ -76,7 +100,10 @@ function HistoryRow({ row }: { row: { captured_at: string; total_coins: number; 
       <td className="py-1.5 pr-4 text-[#e6edf3] font-mono">
         {isValid ? dt.toISOString().replace('T', ' ').slice(0, 16) + ' UTC' : row.captured_at}
       </td>
-      <td className="py-1.5 pr-4 text-[#64748b]">{row.total_coins}</td>
+      <td className="py-1.5 pr-4 text-[#64748b]">{row.total_coins || '—'}</td>
+      <td className="py-1.5 pr-4">
+        <CohortBar row={row} />
+      </td>
       <td className="py-1.5 text-[#64748b]">
         {row.fear_greed != null ? row.fear_greed.toFixed(0) : '—'}
       </td>
@@ -218,6 +245,7 @@ export default function Dashboard() {
               <tr className="text-[11px] text-[#64748b] uppercase tracking-wider">
                 <th className="text-left pb-2 pr-4 font-normal">captured at (UTC)</th>
                 <th className="text-left pb-2 pr-4 font-normal">coins</th>
+                <th className="text-left pb-2 pr-4 font-normal">cohort split</th>
                 <th className="text-left pb-2 font-normal">fear/greed</th>
               </tr>
             </thead>

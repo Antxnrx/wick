@@ -80,7 +80,17 @@ export function getCohortStats(): CohortStats[] {
   return fromSqlite_getCohortStats();
 }
 
-export function getSnapshotHistory(): Array<{ captured_at: string; total_coins: number; fear_greed: number | null }> {
+export interface HistoryRow {
+  captured_at: string;
+  total_coins: number;
+  fear_greed: number | null;
+  signal?: number;
+  noise?: number;
+  organic?: number;
+  trending?: number;
+}
+
+export function getSnapshotHistory(): HistoryRow[] {
   if (existsSync(HIST_JSON)) {
     return readJson(HIST_JSON, []);
   }
