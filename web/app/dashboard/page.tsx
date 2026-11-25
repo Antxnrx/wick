@@ -251,9 +251,54 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {(() => {
+        const dataWindows = history.filter(h => h.total_coins > 0 && h.fear_greed != null);
+        if (dataWindows.length === 0) return null;
+        const extremeFearCount = dataWindows.filter(h => (h.fear_greed ?? 100) <= 25).length;
+        const pctExtreme = Math.round((extremeFearCount / dataWindows.length) * 100);
+        return (
+          <div className="bg-panel border border-border rounded p-5">
+            <div className="text-xs text-[#64748b] mb-4 uppercase tracking-wider">market regime</div>
+            <div className="flex items-center gap-6 mb-5">
+              <div>
+                <div className="text-noise text-4xl font-bold leading-none">{pctExtreme}%</div>
+                <div className="text-[11px] text-[#64748b] mt-1">extreme fear across all windows</div>
+              </div>
+              <div className="border-l border-border pl-6 flex flex-col gap-1 text-[11px] text-[#64748b]">
+                <div><span className="text-[#e6edf3]">{dataWindows.length}</span> windows with real data</div>
+                <div><span className="text-noise">{extremeFearCount}</span> at F&amp;G ≤ 25 (extreme fear)</div>
+                <div>range: F&amp;G {Math.min(...dataWindows.map(w => w.fear_greed ?? 100))}–{Math.max(...dataWindows.map(w => w.fear_greed ?? 0))}</div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {dataWindows.slice().reverse().map(w => {
+                const fg = w.fear_greed ?? 9;
+                return (
+                  <div key={w.captured_at} className="flex items-center gap-3">
+                    <span className="text-[10px] text-[#64748b] font-mono w-32 shrink-0">
+                      {w.captured_at.slice(0, 16).replace('T', ' ')}
+                    </span>
+                    <div className="flex-1 h-1.5 bg-border rounded overflow-hidden">
+                      <div className="h-full bg-noise rounded" style={{ width: `${fg}%` }} />
+                    </div>
+                    <span className="text-noise text-[10px] font-mono w-10 text-right">{fg.toFixed(0)}</span>
+                    <span className="text-[10px] text-noise/60 w-20">extreme fear</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 text-[11px] text-[#64748b] border-t border-border pt-3 leading-relaxed">
+              Extreme fear is a regime where pump dynamics concentrate in micro-caps while large-caps attract
+              relative safety flows. The structural disjoint between gainers and most-visited is maximally
+              pronounced here — results should be interpreted in this market context.
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="bg-panel border border-border rounded p-5">
         <div className="text-xs text-[#64748b] mb-3 uppercase tracking-wider">
-          snapshot history ({history.length} windows)
+          snapshot history ({history.length} windows) · updates every 6h (00:00, 06:00, 12:00, 18:00 UTC)
         </div>
         {history.length === 0 ? (
           <div className="text-[#64748b] text-xs">no snapshots yet</div>
