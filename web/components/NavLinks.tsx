@@ -7,6 +7,7 @@ const LINKS = [
   { href: '/live',      label: 'live' },
   { href: '/dashboard', label: 'dashboard' },
   { href: '/evidence',  label: 'evidence' },
+  { href: '/api-notes', label: 'api notes' },
 ];
 
 export function NavLinks() {

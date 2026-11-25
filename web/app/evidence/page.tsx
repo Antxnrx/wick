@@ -1,11 +1,18 @@
 import { getEvidence } from '../../lib/db';
 
+const SUP: Record<string, string> = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻' };
+function sup(n: number) { return String(n).split('').map(c => SUP[c] ?? c).join(''); }
+
 function fmtPrice(n: number | null): string {
   if (n == null) return '—';
-  if (n >= 1000) return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
-  if (n >= 1) return '$' + n.toFixed(2);
-  if (n >= 0.001) return '$' + n.toFixed(4);
-  return '$' + n.toExponential(2);
+  if (n >= 1000)   return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (n >= 1)      return '$' + n.toFixed(2);
+  if (n >= 0.01)   return '$' + n.toFixed(4);
+  if (n >= 0.0001) return '$' + n.toFixed(6);
+  if (n >= 1e-8)   return '$' + n.toFixed(8);
+  const exp = Math.floor(Math.log10(Math.abs(n)));
+  const m = (n / Math.pow(10, exp)).toFixed(2);
+  return `$${m}×10${sup(exp)}`;
 }
 
 function fmtPct(n: number | null) {

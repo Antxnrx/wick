@@ -2,9 +2,25 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { NavLinks } from '../components/NavLinks';
 
+const SITE_URL = 'https://web-zeta-two-28.vercel.app';
+
 export const metadata: Metadata = {
-  title: 'Wick — CMC Trending Audit',
-  description: "CMC's own two trending endpoints disagree. That disagreement predicts outcome.",
+  title: { default: 'Wick — CMC Trending Audit', template: '%s · Wick' },
+  description: "CMC's gainers and most-visited lists have never shared a coin. 0 signal in 11+ windows. Every top gainer is structurally noise.",
+  metadataBase: new URL(SITE_URL),
+  openGraph: {
+    title: 'Wick — Every CMC gainer is noise',
+    description: "CMC runs two independent ranking systems. Cross-referencing them reveals: every price pump in the top gainers has zero volume backing. 0 signal coins across 11+ windows.",
+    url: SITE_URL,
+    siteName: 'Wick',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Wick — Every CMC gainer is noise',
+    description: "CMC's two independent ranking systems have never agreed. 0 signal coins. 11+ windows. The disjoint IS the finding.",
+    creator: '@whereizanton',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -162,6 +162,15 @@ export function LandingClient({ windowCount, dataWindowCount, capturedAt, coinCo
               className="px-4 py-2 border border-border text-[#64748b] text-[11px] uppercase tracking-wider rounded hover:border-[#64748b] hover:text-[#e6edf3] transition-colors">
               live coins
             </Link>
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                'every top gainer on @CoinMarketCap has zero volume backing.\n\ncmc\'s two independent ranking systems have never shared a single coin. 0 signal across 11+ windows.\n\nthat IS the finding.\n\nhttps://web-zeta-two-28.vercel.app'
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 border border-border text-[#64748b] text-[11px] uppercase tracking-wider rounded hover:border-[#1d9bf0] hover:text-[#1d9bf0] transition-colors">
+              share on x
+            </a>
           </div>
         </div>
 
