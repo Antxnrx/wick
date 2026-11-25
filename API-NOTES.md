@@ -98,5 +98,24 @@ are preserved. The analysis and web UI are unaffected.
 
 ---
 
+---
+
+## 5. Structural finding: listings endpoints are completely disjoint
+
+**Observed:** consistently across all 6 data windows (Nov 24–25 2026)
+
+The top 20 by `percent_change_24h` (gainers) and top 20 by `volume_24h` (most-visited)
+are always completely disjoint — 0 coins appear in both. Zero overlap in every window.
+
+**Interpretation:** Coins that pump the most by percentage are small-caps with tiny
+volume ($386K–$2M 24h). Coins with the highest volume (BTC at $32B, ETH at $14B,
+USDT at $57B) have price changes of only −1% to −2%. The two sorting dimensions
+select fundamentally different market segments, making overlap structurally rare.
+
+**Implication for the thesis:** The "signal" cohort (both gainers + most-visited)
+is empirically empty. This is itself the finding — price pumps in the top 20 gainers
+consistently lack any organic volume backing. Every gainer classified as "noise" by
+CMC's own data.
+
 *Add observations here as they accumulate. Each entry should include endpoint,
 reproduction timestamp, raw JSON snippet, and how we handle it.*
