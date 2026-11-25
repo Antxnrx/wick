@@ -37,12 +37,12 @@ export function CoinCard({ coin }: { coin: CoinEntry }) {
   return (
     <div className="bg-panel border border-border rounded p-3 flex flex-col gap-2 hover:border-[#30363d] transition-colors">
       <div className="flex items-start justify-between gap-2">
-        <div>
+        <div className="min-w-0 flex-1">
           <a href={cmcUrl} target="_blank" rel="noopener noreferrer"
             className="text-sm font-bold text-[#e6edf3] hover:text-signal transition-colors">
             {coin.symbol}
           </a>
-          <span className="text-[#64748b] text-xs ml-1.5 truncate">{coin.name}</span>
+          <span className="text-[#64748b] text-xs ml-1.5">{coin.name.length > 18 ? coin.name.slice(0, 16) + '…' : coin.name}</span>
         </div>
         <CohortBadge cohort={coin.cohort} />
       </div>
