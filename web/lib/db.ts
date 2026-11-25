@@ -39,10 +39,24 @@ export interface CohortStats {
   pct_negative_T7d: number | null;
 }
 
+export interface EvidenceRow {
+  symbol: string;
+  name: string;
+  captured_at: string;
+  endpoint: string;
+  price_usd: number | null;
+  pct_change_24h: number | null;
+  horizon: string | null;
+  outcome_price: number | null;
+  outcome_pct: number | null;
+  source_call: string | null;
+}
+
 const DATA_DIR = join(process.cwd(), 'public', 'data');
 const LIVE_JSON  = join(DATA_DIR, 'live.json');
 const STATS_JSON = join(DATA_DIR, 'stats.json');
 const HIST_JSON  = join(DATA_DIR, 'history.json');
+const EVI_JSON   = join(DATA_DIR, 'evidence.json');
 
 function readJson<T>(path: string, fallback: T): T {
   try {
@@ -71,6 +85,13 @@ export function getSnapshotHistory(): Array<{ captured_at: string; total_coins: 
     return readJson(HIST_JSON, []);
   }
   return fromSqlite_getSnapshotHistory();
+}
+
+export function getEvidence(): EvidenceRow[] {
+  if (existsSync(EVI_JSON)) {
+    return readJson<EvidenceRow[]>(EVI_JSON, []);
+  }
+  return fromSqlite_getEvidence();
 }
 
 // --- SQLite fallback (local dev only, not available on Vercel) ---
@@ -174,4 +195,19 @@ function fromSqlite_getSnapshotHistory() {
   if (!db) return [];
   type H = { captured_at: string; total_coins: number; fear_greed: number | null };
   return sq<H>(db, `SELECT s.captured_at, COUNT(DISTINCT a.cmc_id) as total_coins, AVG(a.fear_greed) as fear_greed FROM (SELECT DISTINCT captured_at FROM snapshots ORDER BY captured_at DESC LIMIT 48) s LEFT JOIN appearances a ON a.snapshot_id IN (SELECT id FROM snapshots WHERE captured_at = s.captured_at) GROUP BY s.captured_at ORDER BY s.captured_at DESC`);
+}
+
+function fromSqlite_getEvidence(): EvidenceRow[] {
+  const db = openSqlite();
+  if (!db) return [];
+  return sq<EvidenceRow>(db, `
+    SELECT a.symbol, a.name, s.captured_at, a.endpoint,
+      a.price_usd, a.pct_change_24h,
+      o.horizon, o.price_usd as outcome_price, o.pct_change as outcome_pct, o.source_call
+    FROM appearances a
+    JOIN snapshots s ON s.id = a.snapshot_id
+    LEFT JOIN outcomes o ON o.appearance_id = a.id
+    ORDER BY s.captured_at DESC, a.symbol ASC
+    LIMIT 500
+  `);
 }

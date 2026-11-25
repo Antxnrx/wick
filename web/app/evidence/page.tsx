@@ -1,39 +1,4 @@
-import { DatabaseSync } from 'node:sqlite';
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
-
-const DB_PATH = process.env.WICK_DB_PATH ?? join(process.cwd(), '..', 'data', 'wick.db');
-
-interface EvidenceRow {
-  symbol: string;
-  name: string;
-  captured_at: string;
-  endpoint: string;
-  price_usd: number | null;
-  pct_change_24h: number | null;
-  horizon: string | null;
-  outcome_price: number | null;
-  outcome_pct: number | null;
-  source_call: string | null;
-}
-
-function getEvidence(): EvidenceRow[] {
-  if (!existsSync(DB_PATH)) return [];
-  const db = new DatabaseSync(DB_PATH);
-  db.exec('PRAGMA journal_mode = WAL');
-
-  return db.prepare(`
-    SELECT
-      a.symbol, a.name, s.captured_at, a.endpoint,
-      a.price_usd, a.pct_change_24h,
-      o.horizon, o.price_usd as outcome_price, o.pct_change as outcome_pct, o.source_call
-    FROM appearances a
-    JOIN snapshots s ON s.id = a.snapshot_id
-    LEFT JOIN outcomes o ON o.appearance_id = a.id
-    ORDER BY s.captured_at DESC, a.symbol ASC
-    LIMIT 200
-  `).all() as unknown as EvidenceRow[];
-}
+import { getEvidence } from '../../lib/db';
 
 function fmtPct(n: number | null) {
   if (n == null) return <span className="text-[#64748b]">—</span>;

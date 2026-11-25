@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { NavLinks } from '../components/NavLinks';
 
 export const metadata: Metadata = {
   title: 'Wick — CMC Trending Audit',
@@ -15,11 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="text-lg font-bold tracking-tight">wick</span>
             <span className="text-[#64748b] text-xs">CMC trending audit</span>
           </div>
-          <nav className="flex gap-6 text-xs text-[#64748b]">
-            <a href="/" className="hover:text-[#e6edf3] transition-colors">live</a>
-            <a href="/dashboard" className="hover:text-[#e6edf3] transition-colors">dashboard</a>
-            <a href="/evidence" className="hover:text-[#e6edf3] transition-colors">evidence</a>
-          </nav>
+          <NavLinks />
         </header>
         <main className="px-6 py-8 max-w-6xl mx-auto">{children}</main>
       </body>

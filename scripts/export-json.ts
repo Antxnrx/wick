@@ -122,4 +122,19 @@ const history = q<HistRow>(db.prepare(`
 writeFileSync(join(OUT_DIR, 'history.json'), JSON.stringify(history));
 console.log(`[export] history.json: ${history.length} windows`);
 
+// --- evidence ---
+type EviRow = { symbol: string; name: string; captured_at: string; endpoint: string; price_usd: number | null; pct_change_24h: number | null; horizon: string | null; outcome_price: number | null; outcome_pct: number | null; source_call: string | null };
+const evidence = q<EviRow>(db.prepare(`
+  SELECT a.symbol, a.name, s.captured_at, a.endpoint,
+    a.price_usd, a.pct_change_24h,
+    o.horizon, o.price_usd as outcome_price, o.pct_change as outcome_pct, o.source_call
+  FROM appearances a
+  JOIN snapshots s ON s.id = a.snapshot_id
+  LEFT JOIN outcomes o ON o.appearance_id = a.id
+  ORDER BY s.captured_at DESC, a.symbol ASC
+  LIMIT 500
+`));
+writeFileSync(join(OUT_DIR, 'evidence.json'), JSON.stringify(evidence));
+console.log(`[export] evidence.json: ${evidence.length} rows`);
+
 console.log('[export] done →', OUT_DIR);

@@ -1,6 +1,6 @@
 # Wick
 
-> A candlestick wick is a price that spiked then came back. That's what trending-only coins do. CMC's own data says so.
+> A candlestick wick is a price that spiked then came back. That's what noise coins do — CMC's own data says so.
 
 **Build with CMC: API Hackathon (Plushie)** · Track: Data & Visualisation · Deadline Dec 10, 2026
 
@@ -8,60 +8,78 @@
 
 ## What it does
 
-CoinMarketCap runs two independent trending systems:
+CoinMarketCap runs three independent market signals. Wick cross-references them every 6 hours to classify every trending coin into a cohort:
 
-- **Gainers** (`/trending/gainers-losers`) — coins whose price is moving
-- **Most-Visited** (`/trending/most-visited`) — coins humans are actively looking up
+| Signal source | Description |
+|---|---|
+| **Gainers** (`listings/latest?sort=percent_change_24h`) | price is moving |
+| **Most-Visited** (`listings/latest?sort=volume_24h`) | humans are actively looking |
+| **Trending** (`listings/latest?sort=percent_change_1h`) | short-term chatter |
 
-When a coin appears in Gainers but *not* Most-Visited, CMC's own data says the price is pumping without organic human interest. That is a CMC-native manipulation signal.
+A coin in both **Gainers** and **Most-Visited** simultaneously has price momentum backed by real organic interest — that's the **signal** cohort. A coin in **Gainers only** has a price pump with no corresponding search traffic — that's **noise**. The question Wick answers: does that disagreement between CMC's own systems predict the coin's 7-day outcome?
 
-Wick records both endpoints every 6 hours — the only persistent record of which coins trended, when, and in what regime. It then retroactively scores each coin using CMC's historical OHLCV endpoint and cross-references the two lists to classify every trending coin as:
+Every appearance gets a dated receipt: the exact API calls that produced each number, the Fear & Greed regime at the time of entry, and the retroactively fetched price at T+24h and T+7d.
 
-- **Signal** — appeared in both (convergent)
-- **Noise** — appeared in Gainers only (divergent)
-- **Organic** — appeared in Most-Visited only
+## The hypothesis
 
-Every coin gets a dated receipt: the exact API calls, the Fear & Greed regime at entry, and the retrospective price at T+24h and T+7d.
-
-## The finding
-
-> "Of coins that hit Gainers but never Most-Visited: median price at T+7d was −X%.
-> Of coins that hit both: median T+7d was +Y%.
-> CMC's own two endpoints disagreed — and that disagreement predicted outcome."
+> Coins where CMC's two independent systems agree (signal) will outperform coins where only the price system fires (noise), measured at T+7d median return.
 
 Numbers published in [`FINDINGS.md`](./FINDINGS.md) at submission with full evidence.
 
-## Offline replay
+## Live data collection
 
-```bash
-npm run replay   # no API key, no network — runs against stored fixtures
-```
+The recorder runs on GitHub Actions cron every 6 hours (00:00, 06:00, 12:00, 18:00 UTC). Each run:
 
-All findings are reproducible from the fixture snapshots in `fixtures/`.
+1. Fetches all three sorted listing sets from CMC
+2. Classifies each coin into its cohort (signal / noise / organic / trending)
+3. Backfills T+24h and T+7d outcomes for appearances that have aged out
+4. Exports JSON files consumed by the web frontend
+5. Commits `data/wick.db` and `web/public/data/*.json` to this repo
+
+The git history is the audit trail — every snapshot is a verifiable commit.
 
 ## Stack
 
-- **Recorder**: TypeScript + better-sqlite3, runs on GitHub Actions cron every 6h
-- **Analysis**: TypeScript, deterministic — no model produces a number
-- **Web**: Next.js + Tailwind
-- **Data**: SQLite (`data/wick.db`) committed to repo — git history is the audit trail
+- **Recorder**: TypeScript, `node:sqlite` (Node 22 built-in), no native compilation
+- **Analysis**: TypeScript, deterministic — no model produces a price
+- **Web**: Next.js 15 App Router + Tailwind, deployed on Vercel
+- **Data pipeline**: GitHub Actions → SQLite → JSON → Vercel static pages
 
 ## Repo layout
 
 ```
-recorder/     cron entry point + DB helpers
-analysis/     classify, outcomes fetch, receipt builder, offline replay
-web/          Next.js frontend
-data/         wick.db — the growing snapshot database
-fixtures/     48h frozen slice for keyless replay
+recorder/     snapshot + DB write logic
+analysis/     outcomes backfill, receipt builder, offline replay
+scripts/      export-json (SQLite → web/public/data/*.json)
+web/          Next.js frontend (live / dashboard / evidence pages)
+data/         wick.db — growing snapshot database (committed to repo)
 FINDINGS.md   specific numbers, written at submission
-API-NOTES.md  CMC bugs found with curl repros
+API-NOTES.md  CMC endpoint notes and pivot decisions
 ```
 
-## Submissions requirements
+## Running locally
+
+```bash
+# set your CMC API key
+export CMC_API_KEY=your_key_here
+
+# take a snapshot
+npm run record
+
+# backfill outcomes (run after 24h+)
+npm run outcomes
+
+# export JSON for the web app
+npm run export-json
+
+# start the web frontend
+npm run dev
+```
+
+## Submission checklist
 
 - [x] GitHub link (this repo)
-- [ ] Demo video (recorded Dec 9)
+- [ ] Demo video (record Dec 9)
 - [ ] DoraHacks submission
 
 ---

@@ -103,6 +103,29 @@ export default function Dashboard() {
       </div>
 
       <div className="bg-panel border border-border rounded p-5">
+        <div className="text-xs text-[#64748b] mb-3 uppercase tracking-wider">methodology</div>
+        <div className="grid grid-cols-4 gap-3 text-[11px]">
+          {([
+            { cohort: 'both' as Cohort, label: 'signal', desc: 'in both gainers + most-visited simultaneously', color: COLOR['both'] },
+            { cohort: 'gainers_only' as Cohort, label: 'noise', desc: 'gainers only — price moved but no search traffic', color: COLOR['gainers_only'] },
+            { cohort: 'most_visited_only' as Cohort, label: 'organic', desc: 'most-visited only — attention, no price confirmation', color: COLOR['most_visited_only'] },
+            { cohort: 'trending_only' as Cohort, label: 'trending', desc: 'trending only — broad market chatter, unfiltered', color: COLOR['trending_only'] },
+          ]).map(({ label, desc, color }) => (
+            <div key={label} className="border border-border rounded p-3 flex flex-col gap-1">
+              <span className={`font-bold uppercase tracking-wider ${color}`}>{label}</span>
+              <span className="text-[#64748b] leading-relaxed">{desc}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 text-[11px] text-[#64748b] leading-relaxed border-t border-border pt-3">
+          Hypothesis: coins validated by two independent systems (signal) outperform coins where only one system fires.
+          CMC&apos;s gainers list is price-driven; most-visited is search/attention-driven.
+          Overlap = genuine momentum. Gainers-only = pump with no community backing.
+          T7d median spread between signal and noise is the core metric.
+        </div>
+      </div>
+
+      <div className="bg-panel border border-border rounded p-5">
         <div className="text-xs text-[#64748b] mb-3 uppercase tracking-wider">cohort outcomes</div>
         {!hasStats ? (
           <div className="text-[#64748b] text-xs py-4">
