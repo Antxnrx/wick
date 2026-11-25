@@ -12,6 +12,7 @@ interface CmcCoin {
   id: number;
   name: string;
   symbol: string;
+  slug?: string;
   quote?: { USD?: { price?: number; volume_24h?: number; percent_change_1h?: number; percent_change_24h?: number } };
 }
 
@@ -97,6 +98,7 @@ async function run() {
       cmc_id: coin.id,
       symbol: coin.symbol,
       name: coin.name,
+      slug: coin.slug ?? null,
       price_usd: coin.quote?.USD?.price ?? null,
       volume_24h: coin.quote?.USD?.volume_24h ?? null,
       pct_change_1h: coin.quote?.USD?.percent_change_1h ?? null,

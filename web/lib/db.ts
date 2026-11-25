@@ -17,6 +17,7 @@ export interface CoinEntry {
   cmc_id: number;
   symbol: string;
   name: string;
+  slug: string | null;
   price_usd: number | null;
   pct_change_24h: number | null;
   pct_change_1h: number | null;
@@ -117,7 +118,7 @@ function openSqlite() {
   } catch { return null; }
 }
 
-type AppRow = { id: number; cmc_id: number; symbol: string; name: string; price_usd: number | null; pct_change_24h: number | null; pct_change_1h: number | null; volume_24h: number | null; fear_greed: number | null; endpoint: string };
+type AppRow = { id: number; cmc_id: number; symbol: string; name: string; slug: string | null; price_usd: number | null; pct_change_24h: number | null; pct_change_1h: number | null; volume_24h: number | null; fear_greed: number | null; endpoint: string };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sq<T>(db: NonNullable<ReturnType<typeof openSqlite>>, sql: string, ...args: any[]): T[] {
@@ -136,7 +137,7 @@ function median(values: number[]): number | null {
 }
 
 function classifySqlite(db: NonNullable<ReturnType<typeof openSqlite>>, captured_at: string): CoinEntry[] {
-  const apps = sq<AppRow>(db, `SELECT a.id, a.cmc_id, a.symbol, a.name, a.price_usd, a.pct_change_24h, a.pct_change_1h, a.volume_24h, a.fear_greed, a.endpoint FROM appearances a JOIN snapshots s ON s.id = a.snapshot_id WHERE s.captured_at = ?`, captured_at);
+  const apps = sq<AppRow>(db, `SELECT a.id, a.cmc_id, a.symbol, a.name, a.slug, a.price_usd, a.pct_change_24h, a.pct_change_1h, a.volume_24h, a.fear_greed, a.endpoint FROM appearances a JOIN snapshots s ON s.id = a.snapshot_id WHERE s.captured_at = ?`, captured_at);
   const gainers = new Map<number, AppRow>();
   const mv = new Map<number, AppRow>();
   const trending = new Map<number, AppRow>();
@@ -150,7 +151,7 @@ function classifySqlite(db: NonNullable<ReturnType<typeof openSqlite>>, captured
     const inG = gainers.has(cmc_id), inMV = mv.has(cmc_id);
     const cohort: Cohort = inG && inMV ? 'both' : inG ? 'gainers_only' : inMV ? 'most_visited_only' : 'trending_only';
     const p = gainers.get(cmc_id) ?? mv.get(cmc_id) ?? trending.get(cmc_id)!;
-    coins.push({ cmc_id, symbol: p.symbol, name: p.name, price_usd: p.price_usd, pct_change_24h: p.pct_change_24h, pct_change_1h: p.pct_change_1h, volume_24h: p.volume_24h, fear_greed: p.fear_greed, cohort });
+    coins.push({ cmc_id, symbol: p.symbol, name: p.name, slug: p.slug ?? null, price_usd: p.price_usd, pct_change_24h: p.pct_change_24h, pct_change_1h: p.pct_change_1h, volume_24h: p.volume_24h, fear_greed: p.fear_greed, cohort });
   }
   const order: Record<Cohort, number> = { both: 0, gainers_only: 1, most_visited_only: 2, trending_only: 3 };
   return coins.sort((a, b) => order[a.cohort] - order[b.cohort]);

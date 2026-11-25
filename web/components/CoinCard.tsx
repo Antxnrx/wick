@@ -31,7 +31,7 @@ function fmtVol(n: number | null): string {
 export function CoinCard({ coin }: { coin: CoinEntry }) {
   const pct24h = fmtPct(coin.pct_change_24h);
   const pct1h  = fmtPct(coin.pct_change_1h);
-  const cmcSlug = coin.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const cmcSlug = coin.slug ?? coin.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   const cmcUrl = `https://coinmarketcap.com/currencies/${cmcSlug}/`;
 
   return (

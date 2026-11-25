@@ -39,18 +39,19 @@ if (!existsSync(DB_PATH)) {
 
 const db = new DatabaseSync(DB_PATH);
 db.exec('PRAGMA journal_mode = WAL');
+try { db.exec('ALTER TABLE appearances ADD COLUMN slug TEXT'); } catch {}
 
 // --- live snapshot ---
 type WindowRow = { captured_at: string };
 const latest = qOne<WindowRow>(db.prepare(`SELECT captured_at FROM snapshots ORDER BY captured_at DESC LIMIT 1`));
 const windowCount = (qOne<{ n: number }>(db.prepare(`SELECT COUNT(DISTINCT captured_at) as n FROM snapshots`))?.n ?? 0);
 
-type AppRow = { id: number; cmc_id: number; symbol: string; name: string; price_usd: number | null; pct_change_24h: number | null; pct_change_1h: number | null; volume_24h: number | null; fear_greed: number | null; endpoint: string };
+type AppRow = { id: number; cmc_id: number; symbol: string; name: string; slug: string | null; price_usd: number | null; pct_change_24h: number | null; pct_change_1h: number | null; volume_24h: number | null; fear_greed: number | null; endpoint: string };
 
 let liveCoins: unknown[] = [];
 if (latest) {
   const apps = q<AppRow>(db.prepare(`
-    SELECT a.id, a.cmc_id, a.symbol, a.name, a.price_usd, a.pct_change_24h, a.pct_change_1h, a.volume_24h, a.fear_greed, a.endpoint
+    SELECT a.id, a.cmc_id, a.symbol, a.name, a.slug, a.price_usd, a.pct_change_24h, a.pct_change_1h, a.volume_24h, a.fear_greed, a.endpoint
     FROM appearances a JOIN snapshots s ON s.id = a.snapshot_id WHERE s.captured_at = ?
   `), latest.captured_at);
 
@@ -67,7 +68,7 @@ if (latest) {
     const inG = gainers.has(cmc_id), inMV = mv.has(cmc_id);
     const cohort: Cohort = inG && inMV ? 'both' : inG ? 'gainers_only' : inMV ? 'most_visited_only' : 'trending_only';
     const p = gainers.get(cmc_id) ?? mv.get(cmc_id) ?? trending.get(cmc_id)!;
-    liveCoins.push({ cmc_id, symbol: p.symbol, name: p.name, price_usd: p.price_usd, pct_change_24h: p.pct_change_24h, pct_change_1h: p.pct_change_1h, volume_24h: p.volume_24h, fear_greed: p.fear_greed, cohort });
+    liveCoins.push({ cmc_id, symbol: p.symbol, name: p.name, slug: p.slug ?? null, price_usd: p.price_usd, pct_change_24h: p.pct_change_24h, pct_change_1h: p.pct_change_1h, volume_24h: p.volume_24h, fear_greed: p.fear_greed, cohort });
   }
   const order: Record<Cohort, number> = { both: 0, gainers_only: 1, most_visited_only: 2, trending_only: 3 };
   liveCoins.sort((a: any, b: any) => order[a.cohort as Cohort] - order[b.cohort as Cohort]);

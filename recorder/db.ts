@@ -13,6 +13,8 @@ export function getDb(): DatabaseSync {
   _db.exec('PRAGMA journal_mode = WAL');
   const schema = readFileSync(SCHEMA_PATH, 'utf8');
   _db.exec(schema);
+  // Migration: add slug column if it doesn't exist yet
+  try { _db.exec('ALTER TABLE appearances ADD COLUMN slug TEXT'); } catch {}
   return _db;
 }
 
@@ -29,6 +31,7 @@ export interface AppearanceRow {
   cmc_id: number;
   symbol: string;
   name: string;
+  slug: string | null;
   price_usd: number | null;
   volume_24h: number | null;
   pct_change_1h: number | null;
@@ -51,10 +54,10 @@ export function insertAppearances(rows: AppearanceRow[]): void {
   const db = getDb();
   const stmt = db.prepare(`
     INSERT INTO appearances
-      (snapshot_id, cmc_id, symbol, name, price_usd, volume_24h,
+      (snapshot_id, cmc_id, symbol, name, slug, price_usd, volume_24h,
        pct_change_1h, pct_change_24h, fear_greed, endpoint)
     VALUES
-      (:snapshot_id, :cmc_id, :symbol, :name, :price_usd, :volume_24h,
+      (:snapshot_id, :cmc_id, :symbol, :name, :slug, :price_usd, :volume_24h,
        :pct_change_1h, :pct_change_24h, :fear_greed, :endpoint)
   `);
   for (const row of rows) {

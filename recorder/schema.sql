@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS appearances (
   cmc_id          INTEGER NOT NULL,
   symbol          TEXT NOT NULL,
   name            TEXT NOT NULL,
+  slug            TEXT,
   price_usd       REAL,
   volume_24h      REAL,
   pct_change_1h   REAL,
