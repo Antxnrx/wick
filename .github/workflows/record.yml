@@ -26,10 +26,18 @@ jobs:
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
         run: npm run record
 
+      - name: Backfill outcomes
+        env:
+          CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
+        run: npm run outcomes
+
+      - name: Export JSON for web
+        run: npm run export-json
+
       - name: Commit snapshot
         run: |
           git config user.name "wick-recorder"
           git config user.email "recorder@wick"
-          git add data/wick.db
+          git add data/wick.db web/public/data/
           git diff --staged --quiet || git commit -m "snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push

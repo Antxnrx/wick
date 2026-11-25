@@ -36,10 +36,23 @@ function Column({ cohort, coins }: { cohort: Cohort; coins: CoinEntry[] }) {
         <div className="text-[11px] mt-1 opacity-60">{coins.length} coin{coins.length !== 1 ? 's' : ''}</div>
       </div>
       {coins.length === 0 ? (
-        <div className="text-[#64748b] text-xs py-4 text-center">none this window</div>
+        <div className={`text-xs py-4 text-center ${cohort === 'both' ? 'text-signal/60' : 'text-[#64748b]'}`}>
+          {cohort === 'both' ? 'no overlap — gainers & most-visited are disjoint' : 'none this window'}
+        </div>
       ) : (
         coins.map(c => <CoinCard key={c.cmc_id} coin={c} />)
       )}
+    </div>
+  );
+}
+
+function FearGreedBadge({ value }: { value: number }) {
+  const label = value <= 25 ? 'extreme fear' : value <= 45 ? 'fear' : value <= 55 ? 'neutral' : value <= 75 ? 'greed' : 'extreme greed';
+  const color = value <= 25 ? 'text-noise' : value <= 45 ? 'text-orange-400' : value <= 55 ? 'text-[#64748b]' : value <= 75 ? 'text-yellow-400' : 'text-signal';
+  return (
+    <div className={`flex items-center gap-1 ${color}`}>
+      <span className="font-bold">{value}</span>
+      <span className="text-[10px] uppercase tracking-wider">{label}</span>
     </div>
   );
 }
@@ -94,11 +107,14 @@ export default function Home() {
             CMC runs two independent trending systems. disagreement between them is the signal.
           </p>
         </div>
-        <div className="text-right text-[11px] text-[#64748b]">
+        <div className="text-right text-[11px] text-[#64748b] flex flex-col items-end gap-1">
           {capturedAt ? (
             <>
               <div>snapshot: {capturedAt}</div>
               <div>{snap?.window_count} window{snap?.window_count !== 1 ? 's' : ''} recorded</div>
+              {snap && snap.coins[0]?.fear_greed != null && (
+                <FearGreedBadge value={snap.coins[0].fear_greed} />
+              )}
             </>
           ) : (
             <div>no data yet</div>

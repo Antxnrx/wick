@@ -24,7 +24,8 @@ function fmtVol(n: number | null): string {
   if (n == null) return '—';
   if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';
   if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
-  return '$' + (n / 1e3).toFixed(0) + 'K';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+  return '$' + n.toFixed(0);
 }
 
 export function CoinCard({ coin }: { coin: CoinEntry }) {
